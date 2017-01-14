@@ -7,11 +7,20 @@ public class Player_Controller : MonoBehaviour {
     // the speed multiplier for moving the player
     public float speed = 10.0f;
 
-    private Vector3 targetAngle = new Vector3(0f, 0f, 0f);
+    
 
     public GameObject forwardThrust;
     public GameObject backThrust;
+    public GameObject upThrust;
+    public GameObject downThrust;
 
+    public GameObject bullet;
+
+
+    private float bulletTimeLimit = 1f;
+    private float bulletTimeCurrent = 0;
+
+    private Vector3 targetAngle = new Vector3(0f, 0f, 0f);
     // Use this for initialization
     void Start () {
 		
@@ -21,8 +30,11 @@ public class Player_Controller : MonoBehaviour {
 	void Update () {
         MovePlayer();
         ZToZero();
-        
-	}
+
+        FireWeapon();
+
+
+    }
 
 
     // set player z to 0
@@ -44,7 +56,7 @@ public class Player_Controller : MonoBehaviour {
         forceH = forceH * Input.GetAxis("Horizontal");
         forceV = forceV * Input.GetAxis("Vertical");
         // apply vertical force
-        transform.GetComponent<Rigidbody>().AddForce(new Vector3(forceH, forceV, 0));
+        transform.GetComponent<Rigidbody>().AddForce(new Vector3(forceH, forceV, 0f));
 
         RotatePlayer();
         
@@ -58,10 +70,18 @@ public class Player_Controller : MonoBehaviour {
         if (Input.GetAxis("Vertical") < 0)
         {
             targetAngle.x = positive;
+            if (upThrust.GetComponent<ParticleSystem>().isStopped)
+            {
+                upThrust.GetComponent<ParticleSystem>().Play();
+            }
         }
         else if (Input.GetAxis("Vertical") > 0)
         {
             targetAngle.x = negative;
+            if (downThrust.GetComponent<ParticleSystem>().isStopped)
+            {
+                downThrust.GetComponent<ParticleSystem>().Play();
+            }
         }
 
 
@@ -89,11 +109,14 @@ public class Player_Controller : MonoBehaviour {
             targetAngle.z = 0f;
             forwardThrust.GetComponent<ParticleSystem>().Stop();
             backThrust.GetComponent<ParticleSystem>().Stop();
+            
         }
 
         if (Input.GetAxis("Vertical") == 0)
         {
             targetAngle.x = 0f;
+            upThrust.GetComponent<ParticleSystem>().Stop();
+            downThrust.GetComponent<ParticleSystem>().Stop();
         }
         MovementRotation();
     }
@@ -111,4 +134,24 @@ public class Player_Controller : MonoBehaviour {
 
         transform.eulerAngles = currentAngle;
     }
+
+    // fire the weapons gun
+    private void FireWeapon()
+    {
+        Debug.Log(Input.GetAxis("Fire1"));
+        if (Input.GetAxis("Fire1") > 0)
+        {
+            
+            if(bulletTimeCurrent >= bulletTimeLimit)
+            {
+                Vector3 finalPos = transform.position;
+                finalPos.x += .8f;
+                bulletTimeCurrent = 0;
+                Instantiate(bullet, finalPos, Quaternion.identity);
+            }  
+        }
+        bulletTimeCurrent += Time.deltaTime;
+    }
 }
+
+
